@@ -1,0 +1,50 @@
+[project]
+name = "python-flaggle"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Asaph Diniz", email = "contato@asaph.dev.br"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+]
+
+[tool.poetry]
+packages = [{include = "python_flaggle", from = "src"}]
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.11.11"
+pytest = "^8.3.5"
+pytest-cov = "^6.1.1"
+pytest-sugar = "^1.0.0"
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_also = [
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self\\.debug",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+    ]
+
+[tool.coverage.run]
+omit = [
+    ".venv/*",
+    "tests/*"
+    ]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
