@@ -1,4 +1,4 @@
-from flaggle import FlagType, FlagOperation, Flag
+from python_flaggle import FlagType, FlagOperation, Flag
 from pytest import raises
 from unittest.mock import patch
 
@@ -309,7 +309,7 @@ class TestFlag:
             ]
         }
 
-        with patch("flaggle.flag.logger.warning") as mock_warning:
+        with patch("python_flaggle.flag.logger.warning") as mock_warning:
             flag = Flag.from_json(json_data)
             assert flag == {}
             mock_warning.assert_called_once_with("Found flag without name, skipping")
