@@ -110,16 +110,17 @@ class Flag:
 
     def is_enabled(self, other_value: Any | None = None) -> bool:
         logger.debug(f"Flag {self._name} is of type {self._flag_type}")
-        match self._flag_type:
-            case FlagType.BOOLEAN:
-                return self._value
-            case FlagType.STRING | FlagType.INTEGER | FlagType.FLOAT | FlagType.ARRAY:
-                if other_value is None or self._operation is None:
-                    logger.debug("No value to compare or operator not defined")
-                    return bool(self._value)
-                return self._operation(other_value, self._value)
-            case FlagType.NULL | FlagType.EMPTY | _:
-                return False
+        if self._flag_type == FlagType.BOOLEAN:
+            return self._value
+        elif self._flag_type in (FlagType.STRING, FlagType.INTEGER, FlagType.FLOAT, FlagType.ARRAY):
+            if other_value is None or self._operation is None:
+                logger.debug("No value to compare or operator not defined")
+                return bool(self._value)
+            return self._operation(other_value, self._value)
+        elif self._flag_type in (FlagType.NULL, FlagType.EMPTY):
+            return False
+        else:
+            return False
 
     @classmethod
     def from_json(cls: "Flag", data: dict) -> dict[str, "Flag"]:
