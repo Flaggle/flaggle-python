@@ -1,7 +1,7 @@
 from enum import Enum
 from logging import getLogger
 from traceback import format_exc
-from typing import Any
+from typing import Any, Optional
 
 logger = getLogger(__name__)
 
@@ -69,13 +69,13 @@ class Flag:
         self,
         name: str,
         value,
-        description: str | None = None,
-        operation: FlagOperation | None = None,
+        description: Optional[str] = None,
+        operation: Optional[FlagOperation] = None,
     ):
         self._name: str = name
         self._value = value
-        self._description: str | None = description
-        self._operation: FlagOperation | None = operation
+        self._description: Optional[str] = description
+        self._operation: Optional[FlagOperation] = operation
 
         self._flag_type: FlagType = FlagType.from_value(value=value)
 
@@ -86,7 +86,7 @@ class Flag:
         if isinstance(other, Flag):
             return self._name == other._name and self._value == other._value
         return NotImplemented
-    
+
     def __ne__(self, other: "Flag") -> bool:
         return not self.__eq__(other)
 
@@ -108,11 +108,16 @@ class Flag:
             return bool(self._value)
         return False
 
-    def is_enabled(self, other_value: Any | None = None) -> bool:
+    def is_enabled(self, other_value: Optional[Any] = None) -> bool:
         logger.debug(f"Flag {self._name} is of type {self._flag_type}")
         if self._flag_type == FlagType.BOOLEAN:
             return self._value
-        elif self._flag_type in (FlagType.STRING, FlagType.INTEGER, FlagType.FLOAT, FlagType.ARRAY):
+        elif self._flag_type in (
+            FlagType.STRING,
+            FlagType.INTEGER,
+            FlagType.FLOAT,
+            FlagType.ARRAY,
+        ):
             if other_value is None or self._operation is None:
                 logger.debug("No value to compare or operator not defined")
                 return bool(self._value)
@@ -145,8 +150,8 @@ class Flag:
                     operation = FlagOperation.from_string(operation_str)
 
                 result[name] = cls(name, value, description, operation)
-                
+
             return result
-        
+
         except (KeyError, AttributeError) as exc:
             raise ValueError(f"Invalid JSON data: {exc}") from exc
