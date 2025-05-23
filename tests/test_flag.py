@@ -1,4 +1,4 @@
-from flaggle import FlagType, FlagOperation, Flag
+from python_flaggle import FlagType, FlagOperation, Flag
 from pytest import raises
 from unittest.mock import patch
 
