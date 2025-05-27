@@ -1,6 +1,6 @@
 [project]
 name = "flaggle"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = [
     {name = "Asaph Diniz", email = "contato@asaph.dev.br"}
