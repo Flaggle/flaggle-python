@@ -1,5 +1,5 @@
 [project]
-name = "python_flaggle"
+name = "flaggle"
 version = "0.1.0"
 description = ""
 authors = [
@@ -9,6 +9,7 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "requests (>=2.32.3,<3.0.0)"
 ]
 
 [tool.poetry]
