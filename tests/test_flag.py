@@ -1,6 +1,8 @@
-from python_flaggle import FlagType, FlagOperation, Flag
-from pytest import raises
 from unittest.mock import patch
+
+from pytest import raises
+
+from flaggle import Flag, FlagOperation, FlagType
 
 
 class TestFlagType:
@@ -309,7 +311,7 @@ class TestFlag:
             ]
         }
 
-        with patch("python_flaggle.flag.logger.warning") as mock_warning:
+        with patch("flaggle.flag.logger.warning") as mock_warning:
             flag = Flag.from_json(json_data)
             assert flag == {}
             mock_warning.assert_called_once_with("Found flag without name, skipping")
@@ -329,3 +331,16 @@ class TestFlag:
         with raises(ValueError) as exc_info:
             Flag.from_json(json_data)
         assert "Invalid JSON data" in str(exc_info)
+
+    def test_is_enabled_else_branch(self):
+        class DummyFlag(Flag):
+            def __init__(self):
+                # Set a fake type to trigger the 'else' branch
+                self._flag_type = "UNKNOWN_TYPE"
+                self._name = "dummy"
+                self._value = "irrelevant"
+                self._description = None
+                self._operation = None
+
+        flag = DummyFlag()
+        assert flag.is_enabled() is False

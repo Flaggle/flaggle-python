@@ -1,6 +1,6 @@
 [project]
-name = "python_flaggle"
-version = "0.1.0"
+name = "flaggle"
+version = "0.2.0"
 description = ""
 authors = [
     {name = "Asaph Diniz", email = "contato@asaph.dev.br"}
@@ -9,6 +9,7 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "requests (>=2.32.3,<3.0.0)"
 ]
 
 [tool.poetry]
@@ -18,6 +19,11 @@ ruff = "^0.11.11"
 pytest = "^8.3.5"
 pytest-cov = "^6.1.1"
 pytest-sugar = "^1.0.0"
+
+
+[tool.poetry.group.build.dependencies]
+poethepoet = "^0.34.0"
+flake8 = "^7.2.0"
 
 [tool.coverage.report]
 # Regexes for lines to exclude from consideration
