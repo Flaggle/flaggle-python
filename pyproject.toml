@@ -20,6 +20,11 @@ pytest = "^8.3.5"
 pytest-cov = "^6.1.1"
 pytest-sugar = "^1.0.0"
 
+
+[tool.poetry.group.build.dependencies]
+poethepoet = "^0.34.0"
+flake8 = "^7.2.0"
+
 [tool.coverage.report]
 # Regexes for lines to exclude from consideration
 exclude_also = [
