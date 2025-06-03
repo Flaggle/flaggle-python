@@ -1,5 +1,5 @@
-from flaggle.flaggle import Flaggle
-from flaggle.flag import Flag, FlagOperation, FlagType
+from python_flaggle.flaggle import Flaggle
+from python_flaggle.flag import Flag, FlagOperation, FlagType
 
 __all__ = ["FlagType", "FlagOperation", "Flag", "Flaggle"]
 __version__ = "0.2.0"
