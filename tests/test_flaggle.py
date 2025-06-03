@@ -2,12 +2,12 @@ import threading
 from unittest.mock import Mock, patch
 
 
-from flaggle import Flag, Flaggle
+from python_flaggle import Flag, Flaggle
 
 
 class TestFlaggle:
     def test_init(self):
-        with patch("flaggle.flaggle.get") as mock_get:
+        with patch("python_flaggle.flaggle.get") as mock_get:
             mock_response = Mock()
             mock_response.status_code = 200
             mock_response.json.return_value = {
@@ -76,7 +76,7 @@ class TestFlaggleComprehensive:
             def text(self):
                 return '{"flags": [{"name": "flag1", "value": true}]}'
 
-        monkeypatch.setattr("flaggle.flaggle.get", lambda *a, **k: MockResponse())
+        monkeypatch.setattr("python_flaggle.flaggle.get", lambda *a, **k: MockResponse())
         flags = self.flaggle._fetch_flags()
         assert "flag1" in flags
 
@@ -86,7 +86,7 @@ class TestFlaggleComprehensive:
 
             raise RequestException("fail")
 
-        monkeypatch.setattr("flaggle.flaggle.get", raise_exc)
+        monkeypatch.setattr("python_flaggle.flaggle.get", raise_exc)
         assert self.flaggle._fetch_flags() == {}
 
     def test_fetch_flags_key_error(self, monkeypatch):
@@ -105,7 +105,7 @@ class TestFlaggleComprehensive:
             def text(self):
                 return "{}"
 
-        monkeypatch.setattr("flaggle.flaggle.get", lambda *a, **k: MockResponse())
+        monkeypatch.setattr("python_flaggle.flaggle.get", lambda *a, **k: MockResponse())
         assert self.flaggle._fetch_flags() == {}
 
     def test_update_with_data(self, monkeypatch):

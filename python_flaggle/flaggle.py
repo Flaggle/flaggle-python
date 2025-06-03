@@ -7,7 +7,7 @@ from typing import Optional
 
 from requests import RequestException, get
 
-from flaggle.flag import Flag
+from python_flaggle.flag import Flag
 
 logger = getLogger(__name__)
 
