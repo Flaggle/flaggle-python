@@ -3,5 +3,19 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "github.copilot.chat.codeGeneration.enabled": true,
+    "github.copilot.chat.codeGeneration.instructions": [
+        {
+            "file": ".github/instructions/INSTRUCTIONS_CODE.md",
+        },
+        {
+            "file": ".github/instructions/INSTRUCTIONS_DOCS.md",
+        }
+    ],
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        {
+            "file": ".github/instructions/INSTRUCTIONS_COMMITS.md",
+        }
+    ],
 }
