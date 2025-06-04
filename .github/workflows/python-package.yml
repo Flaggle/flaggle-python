@@ -40,6 +40,7 @@ jobs:
       run: |
         pipx install poetry
         poetry config virtualenvs.in-project true
+        poetry self add poetry-bumpversion
         poetry lock --verbose
         poetry install --no-interaction --no-ansi
 
