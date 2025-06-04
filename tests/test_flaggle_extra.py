@@ -1,5 +1,9 @@
+import logging
 import threading
+import types
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from python_flaggle import Flag, Flaggle
 
@@ -114,3 +118,73 @@ def test_flaggle_properties(monkeypatch):
     assert f.verify_ssl is False
     assert f.flags == f._flags
     assert f.last_update == f._last_update
+
+
+def test_flaggle_fetch_flags_unexpected_exception(monkeypatch, caplog):
+    """Test that _fetch_flags handles unexpected exceptions and logs critical."""
+
+    class DummyFlaggle(Flaggle):
+        pass
+
+    def raise_exc(*a, **k):
+        raise RuntimeError("unexpected")
+
+    monkeypatch.setattr("python_flaggle.flaggle.get", raise_exc)
+    f = DummyFlaggle("http://x", interval=1, default_flags={"f": Flag("f", True)})
+    with caplog.at_level(logging.CRITICAL):
+        result = f._fetch_flags()
+        assert result == {}
+        assert any(
+            "Unexpected error during flag fetch" in r.message for r in caplog.records
+        )
+
+
+def test_flaggle_update_handles_exception(monkeypatch, caplog):
+    """Test that _update logs critical on unexpected exception."""
+
+    class DummyFlaggle(Flaggle):
+        pass
+
+    f = DummyFlaggle("http://x", interval=1, default_flags={"f": Flag("f", True)})
+
+    def raise_exc():
+        raise RuntimeError("fail update")
+
+    f._fetch_flags = raise_exc
+    with caplog.at_level(logging.CRITICAL):
+        f._update()
+        assert any(
+            "Unexpected error during flag update" in r.message for r in caplog.records
+        )
+
+
+def test_flaggle_recurring_update_reschedule_exception(monkeypatch, caplog):
+    """Test that recurring_update logs critical if rescheduling fails."""
+    f = Flaggle("http://x", interval=1, default_flags={"f": Flag("f", True)})
+
+    def raise_enter(*a, **k):
+        raise RuntimeError("fail reschedule")
+
+    f._scheduler.enter = raise_enter
+    with caplog.at_level(logging.CRITICAL):
+        f.recurring_update()
+        assert any(
+            "Failed to reschedule recurring update" in r.message for r in caplog.records
+        )
+
+
+def test_flaggle_recurring_update_update_exception(monkeypatch, caplog):
+    """Test that recurring_update logs error if _update fails."""
+    f = Flaggle("http://x", interval=1, default_flags={"f": Flag("f", True)})
+
+    def raise_update():
+        raise RuntimeError("fail update")
+
+    f._update = raise_update
+    # Patch _scheduler.enter to a no-op to avoid further errors
+    f._scheduler.enter = lambda *a, **k: None
+    with caplog.at_level(logging.ERROR):
+        f.recurring_update()
+        assert any(
+            "Error during recurring flag update" in r.message for r in caplog.records
+        )

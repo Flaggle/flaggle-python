@@ -237,7 +237,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - [ ] **Advanced Rollout Strategies:** Support for percentage rollouts, user targeting, and A/B testing.
 - [ ] **Async Support:** Add async/await support for non-blocking flag fetching and updates.
 - [ ] **Type Annotations & Validation:** Improve type safety and validation for flag values and operations.
-- [ ] **Better Error Handling & Logging:** More granular error reporting and logging options.
+- [x] **Better Error Handling & Logging:** More granular error reporting and logging options.
 - [x] **Extensive Documentation & Examples:** Expand documentation with more real-world usage patterns and advanced scenarios.
 
 Contributions and suggestions are welcome! Please open an issue or pull request if you have ideas for improvements.

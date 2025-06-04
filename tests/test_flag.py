@@ -314,7 +314,10 @@ class TestFlag:
         with patch("python_flaggle.flag.logger.warning") as mock_warning:
             flag = Flag.from_json(json_data)
             assert flag == {}
-            mock_warning.assert_called_once_with("Found flag without name, skipping")
+            mock_warning.assert_called_once_with(
+                "Found flag without name, skipping: %r",
+                {"description": "a test", "value": "testflag", "operation": "eq"},
+            )
 
     def test_from_json_invalid_json_data(self):
         json_data = {
