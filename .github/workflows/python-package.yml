@@ -124,6 +124,7 @@ jobs:
     - name: Commit and push changes
       if: steps.semver.outputs.semver != ''
       run: |
+        git pull origin HEAD:${{ github.head_ref }}
         git add .
         git commit -m "[skip ci] 🔖 Bump version ${{ steps.bump-version.outputs.old_version }} -> ${{ steps.bump-version.outputs.new_version }}"
         git push origin HEAD:${{ github.head_ref }}
