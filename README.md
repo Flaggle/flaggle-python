@@ -1,7 +1,8 @@
 # Flaggle
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/python-flaggle)
 ![PyPI - Version](https://img.shields.io/pypi/v/python-flaggle)
+[![PyPI Downloads](https://static.pepy.tech/badge/python-flaggle)](https://pepy.tech/projects/python-flaggle)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Flaggle/flaggle-python/python-package.yml)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/python-flaggle)
 
 ## Overview
 
