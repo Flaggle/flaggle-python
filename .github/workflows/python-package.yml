@@ -81,7 +81,7 @@ jobs:
           elif [[ "$pr_title_norm" =~ ^breaking[[:space:]]change ]]; then
             echo "semver=major" >> $GITHUB_OUTPUT
           else
-            echo "PR title does not start with fix, feat, or breaking change, skipping version bump."
+            echo "PR title '${pr_title}' does not start with fix, feat, or breaking change, skipping version bump."
             echo "semver=" >> $GITHUB_OUTPUT
           fi
         fi
