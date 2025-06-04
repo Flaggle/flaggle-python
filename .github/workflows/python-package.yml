@@ -40,6 +40,7 @@ jobs:
       run: |
         pipx install poetry
         poetry config virtualenvs.in-project true
+        poetry lock --no-update
         poetry install --no-interaction --no-ansi
 
     - name: Lint with flake8
