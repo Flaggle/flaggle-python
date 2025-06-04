@@ -113,13 +113,15 @@ class FlagOperation(Enum):
             ValueError: If the operation name is invalid.
         """
         operation = operation.upper()
-
         try:
             return cls.__dict__[operation]
         except KeyError as exc:
             logger.error("Invalid Operation '%s'", operation)
             logger.debug(format_exc())
             raise ValueError(f"Invalid Operation '{operation}'") from exc
+        except Exception as exc:
+            logger.critical("Unexpected error in FlagOperation.from_string: %s", exc, exc_info=True)
+            raise
 
 
 class Flag:
@@ -247,13 +249,14 @@ class Flag:
         try:
             flags_data = data.get("flags")
             if flags_data is None or not isinstance(flags_data, list):
+                logger.error("No flags in the provided JSON data: %r", data)
                 raise ValueError("No flags in the provided JSON data")
 
             result = {}
             for flag_data in flags_data:
                 name = flag_data.get("name")
                 if not name:
-                    logger.warning("Found flag without name, skipping")
+                    logger.warning("Found flag without name, skipping: %r", flag_data)
                     continue
 
                 value = flag_data.get("value")
@@ -262,11 +265,19 @@ class Flag:
                 operation_str = flag_data.get("operation")
                 operation = None
                 if operation_str:
-                    operation = FlagOperation.from_string(operation_str)
+                    try:
+                        operation = FlagOperation.from_string(operation_str)
+                    except Exception as exc:
+                        logger.error("Invalid operation '%s' for flag '%s': %s", operation_str, name, exc, exc_info=True)
+                        raise ValueError("Invalid JSON data: invalid operation") from exc
 
                 result[name] = cls(name, value, description, operation)
 
             return result
 
         except (KeyError, AttributeError) as exc:
+            logger.error("Invalid JSON data: %s", exc, exc_info=True)
+            raise ValueError(f"Invalid JSON data: {exc}") from exc
+        except Exception as exc:
+            logger.critical("Unexpected error in Flag.from_json: %s", exc, exc_info=True)
             raise ValueError(f"Invalid JSON data: {exc}") from exc

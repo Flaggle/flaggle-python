@@ -150,44 +150,61 @@ class Flaggle:
             logger.info("Fetching flags from %s", self._url)
             response = get(self._url, timeout=self._timeout, verify=self._verify_ssl)
             response.raise_for_status()
-
-            logger.info("Flags fetched successfully")
+            logger.info("Flags fetched successfully from %s", self._url)
             logger.debug("Response content: %s", response.text)
-            logger.warning("Response[%i]: %r", response.status_code, response.json())
-
+            logger.debug("Response[%i]: %r", response.status_code, response.json())
             return Flag.from_json(response.json())
         except RequestException as e:
-            print(f"Error fetching flags: {e}")
+            logger.error("Error fetching flags from %s: %s", self._url, e, exc_info=True)
             return {}
-        except (KeyError, ValueError):
-            logger.error("Invalid response format: 'flags' key not found")
+        except ValueError as e:
+            logger.error("Invalid response format from %s: %s", self._url, e, exc_info=True)
+            return {}
+        except Exception as e:
+            logger.critical("Unexpected error during flag fetch: %s", e, exc_info=True)
             return {}
 
     def _update(self) -> None:
         """
         Update the internal flag dictionary by fetching the latest flags.
         """
-        flags_data = self._fetch_flags()
-        if flags_data:
-            self._flags = flags_data
-            self._last_update = datetime.now(timezone.utc)
-            logger.info("Flags updated successfully")
-            logger.debug("Current flags: %s", self._flags)
+        try:
+            flags_data = self._fetch_flags()
+            if flags_data:
+                self._flags = flags_data
+                self._last_update = datetime.now(timezone.utc)
+                logger.info("Flags updated successfully at %s", self._last_update)
+                logger.debug("Current flags: %s", self._flags)
+            else:
+                logger.warning("No flags data received; keeping previous flags.")
+        except Exception as e:
+            logger.critical("Unexpected error during flag update: %s", e, exc_info=True)
 
     def _schedule_update(self) -> None:
         """
         Start the background scheduler for periodic flag updates.
         """
         def run_scheduler():
-            self._scheduler.enter(self._interval, 1, self.recurring_update)
-            self._scheduler.run()
+            try:
+                self._scheduler.enter(self._interval, 1, self.recurring_update)
+                self._scheduler.run()
+            except Exception as e:
+                logger.critical("Scheduler thread encountered an error: %s", e, exc_info=True)
 
         self._scheduler_thread = Thread(target=run_scheduler, daemon=True)
         self._scheduler_thread.start()
+        logger.info("Flag update scheduler started (interval=%s seconds)", self._interval)
 
     def recurring_update(self) -> None:
         """
         Periodically update flags at the configured interval.
         """
-        self._update()
-        self._scheduler.enter(self._interval, 1, self.recurring_update)
+        try:
+            self._update()
+        except Exception as e:
+            logger.error("Error during recurring flag update: %s", e, exc_info=True)
+        finally:
+            try:
+                self._scheduler.enter(self._interval, 1, self.recurring_update)
+            except Exception as e:
+                logger.critical("Failed to reschedule recurring update: %s", e, exc_info=True)
