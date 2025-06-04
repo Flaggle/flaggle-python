@@ -1,6 +1,6 @@
 [project]
 name = "python_flaggle"
-version = "0.3.1"
+version = "0.3.0"
 description = "python-flaggle is a Python library for feature flag management."
 keywords = ["feature flags", "feature toggles", "feature management", "python"]
 classifiers = [
