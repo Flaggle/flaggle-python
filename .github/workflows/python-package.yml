@@ -9,18 +9,27 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main" ]   
 
 jobs:
-  build:
 
+  build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
+
+    - uses: actions/create-github-app-token@v2
+      id: app-token
+      with:
+        app-id: ${{ vars.FLAGGLE_BOT_ID }}
+        private-key: ${{ secrets.FLAGGLE_BOT_KEY }}
+
     - uses: actions/checkout@v4
+      with:
+        token: ${{ steps.app-token.outputs.token }}
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
@@ -31,6 +40,7 @@ jobs:
       run: |
         pipx install poetry
         poetry config virtualenvs.in-project true
+        poetry lock --verbose
         poetry install --no-interaction --no-ansi
 
     - name: Lint with flake8
@@ -43,3 +53,60 @@ jobs:
     - name: Test with pytest
       run: |
         ${{ github.workspace }}/.venv/bin/pytest --cov=flaggle --cov-report=xml --cov-report=term-missing
+
+  version-bump:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    steps:
+
+    - uses: actions/create-github-app-token@v2
+      id: app-token
+      with:
+        app-id: ${{ vars.FLAGGLE_BOT_ID }}
+        private-key: ${{ secrets.FLAGGLE_BOT_KEY }}
+
+    - name: Get SEMVER from PR Title
+      id: semver
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+
+          pr_title="${{ github.event.pull_request.title }}"
+          pr_title_norm=$(echo "$pr_title" | tr '[:upper:]' '[:lower:]')
+
+          if [[ "$pr_title_norm" =~ ^fix ]]; then
+            echo "semver=patch" >> $GITHUB_OUTPUT
+          elif [[ "$pr_title_norm" =~ ^feat ]]; then
+            echo "semver=minor" >> $GITHUB_OUTPUT
+          elif [[ "$pr_title_norm" =~ ^breaking[[:space:]]change ]]; then
+            echo "semver=major" >> $GITHUB_OUTPUT
+          else
+            echo "PR title '${pr_title}' does not start with fix, feat, or breaking change, skipping version bump."
+            echo "semver=" >> $GITHUB_OUTPUT
+          fi
+        fi
+
+    - name: Get GitHub App User ID
+      if: steps.semver.outputs.semver != ''
+      id: get-user-id
+      run: echo "user-id=$(gh api "/users/${{ steps.generate-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+      env:
+        GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        
+    - name: Bump version
+      if: steps.semver.outputs.semver != ''
+      run: |
+        echo "Bumping version with semver: ${{ steps.semver.outputs.semver }}"
+        poetry version ${{ steps.semver.outputs.semver }}
+        
+    - name: Set Commiter
+      run: |
+        git config --global user.name '${{ steps.generate-token.outputs.app-slug }}[bot]'
+        git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+    
+    - name: Commit and push changes
+      if: steps.semver.outputs.semver != ''
+      run: |
+        git add .
+        git commit -m "[skip ci] 🔖 Bump version to ${{ steps.semver.outputs.semver }}"
+        git push
