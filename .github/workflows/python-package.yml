@@ -67,6 +67,18 @@ jobs:
         app-id: ${{ vars.FLAGGLE_BOT_ID }}
         private-key: ${{ secrets.FLAGGLE_BOT_KEY }}
 
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ steps.app-token.outputs.token }}
+
+    - name: Install poetry
+      run: |
+        pipx install poetry
+        poetry config virtualenvs.in-project true
+        poetry self add poetry-bumpversion
+        poetry lock --verbose
+        poetry install --no-interaction --no-ansi
+
     - name: Get SEMVER from PR Title
       id: semver
       run: |
