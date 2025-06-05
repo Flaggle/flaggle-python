@@ -66,6 +66,10 @@ jobs:
         app-id: ${{ vars.FLAGGLE_BOT_ID }}
         private-key: ${{ secrets.FLAGGLE_BOT_KEY }}
 
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ steps.app-token.outputs.token }}
+
     - name: Get SEMVER from PR Title
       id: semver
       run: |
@@ -95,11 +99,23 @@ jobs:
         
     - name: Bump version
       if: steps.semver.outputs.semver != ''
+      id: bump-version
       run: |
+        echo "old_version=$(poetry version -s)" >> $GITHUB_OUTPUT
         echo "Bumping version with semver: ${{ steps.semver.outputs.semver }}"
-        poetry version ${{ steps.semver.outputs.semver }}
+
+        pipx install poetry
+        poetry config virtualenvs.in-project true
+        poetry self add poetry-bumpversion
+        poetry lock --verbose
+        poetry install --no-interaction --no-ansi
+        poetry version ${{ steps.semver.outputs.semver }} -vvv
+
+        echo "New version: $(poetry version -s)"
+        echo "new_version=$(poetry version -s)" >> $GITHUB_OUTPUT
         
     - name: Set Commiter
+      if: steps.semver.outputs.semver != ''
       run: |
         git config --global user.name '${{ steps.generate-token.outputs.app-slug }}[bot]'
         git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com'
@@ -108,5 +124,7 @@ jobs:
       if: steps.semver.outputs.semver != ''
       run: |
         git add .
-        git commit -m "[skip ci] 🔖 Bump version to ${{ steps.semver.outputs.semver }}"
-        git push
+        git commit -m "[skip ci] 🔖 Bump version ${{ steps.bump-version.outputs.old_version }} -> ${{ steps.bump-version.outputs.new_version }}"
+        git push origin HEAD:${{ github.head_ref }} --force
+      env:
+        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
