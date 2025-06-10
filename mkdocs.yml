@@ -1,0 +1,62 @@
+site_name: Flaggle
+site_description: Feature flag management for Python, with first-class FastAPI integration.
+site_author: Flaggle Contributors
+repo_url: https://github.com/Flaggle/flaggle-python
+repo_name: flaggle-python
+edit_uri: edit/main/docs/
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - toc.integrate
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+  font:
+    text: Roboto
+    code: Roboto Mono
+plugins:
+  - search
+  - awesome-pages
+  - git-revision-date-localized:
+      fallback_to_build_date: true
+  - codeinclude
+  - section-index
+  - macros
+  - mkdocstrings
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - meta
+  - toc:
+      permalink: true
+nav:
+  - Overview: index.md
+  - Getting Started: first-steps.md
+  - Configuration: configuration.md
+  - API Reference:
+      - Flaggle: api/flaggle.md
+      - Flag: api/flag.md
+  - Supported Operations: supported-operations.md
+  - Integrations:
+      - FastAPI: integrations/fastapi.md
+      - Flask: integrations/flask.md
+      - Django: integrations/django.md
+      - Typer: integrations/typer.md
+      - Other: integrations/other.md
+  - Advanced Usage: advanced.md
+  - Tips & FAQ: faq.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+  - License: license.md

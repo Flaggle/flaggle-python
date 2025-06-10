@@ -41,6 +41,7 @@ jobs:
         pipx install poetry
         poetry config virtualenvs.in-project true
         poetry lock --verbose
+        poetry env use ${{ matrix.python-version }}
         poetry install --no-interaction --no-ansi
 
     - name: Lint with flake8
