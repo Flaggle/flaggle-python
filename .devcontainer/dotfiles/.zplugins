@@ -1,0 +1,60 @@
+# shellcheck disable=SC2148
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
+[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+source "${ZINIT_HOME}/zinit.zsh"
+
+# source ~/.zplugins
+# Load starship theme
+# line 1: `starship` binary as command, from github release
+# line 2: starship setup at clone(create init.zsh, completion)
+# line 3: pull behavior same as clone, source init.zsh
+zinit ice as"command" from"gh-r" \
+          atclone"./starship init zsh > init.zsh; ./starship completions zsh > _starship" \
+          atpull"%atclone" src"init.zsh"
+zinit light starship/starship
+
+# Binary release in archive, from GitHub-releases page.
+# After automatic unpacking it provides program "fzf".
+zi ice from"gh-r" as"program"
+zi light junegunn/fzf
+
+# Vim repository on GitHub – a typical source code that needs compilation – Zinit
+# can manage it for you if you like, run `./configure` and other `make`, etc.
+# Ice-mod `pick` selects a binary program to add to $PATH. You could also install the
+# package under the path $ZPFX, see: https://zdharma-continuum.github.io/zinit/wiki/Compiling-programs
+# zi ice \
+#   as"program" \
+#   atclone"rm -f src/auto/config.cache; ./configure" \
+#   atpull"%atclone" \
+#   make \
+#   pick"src/vim"
+# zi light vim/vim
+
+zi light Aloxaf/fzf-tab
+zi light lincheney/fzf-tab-completion
+zi light ahmetb/kubectl-aliases
+zi light Freed-Wu/fzf-tab-source
+
+zi snippet OMZP::git
+zi snippet OMZP::sudo
+zi snippet OMZP::poetry
+zi snippet OMZP::eza
+zi snippet OMZP::dotenv
+zi snippet OMZP::colorize
+zi snippet OMZP::aliases
+
+
+### fzf-tab
+
+export LESSOPEN='|~/.lesspipe.sh %s'
+
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+# shellcheck disable=SC2086
+# shellcheck disable=SC2296
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
+zstyle ':fzf-tab:*' fzf-bindings 'ctrl-j:accept' 'ctrl-a:toggle-all'
+
+zstyle ':fzf-tab:complete:*:*' fzf-flags --preview-window=right,60% --height=70% --border=double
+zstyle ':completion:*:descriptions' format '[%d]'
