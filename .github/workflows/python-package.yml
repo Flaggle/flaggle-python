@@ -55,12 +55,14 @@ jobs:
       run: |
         ${{ github.workspace }}/.venv/bin/pytest --cov=flaggle --cov-report=xml --cov-report=term-missing
 
-  version-bump:
-    runs-on: ubuntu-latest
+  release-candidate:
+    runs-on: self-hosted
     needs: build
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
-    steps:
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize')
+    outputs:
+      version_component: ${{ steps.semver.outputs.semver }}
 
+    steps:
     - uses: actions/create-github-app-token@v2
       id: app-token
       with:
@@ -94,23 +96,36 @@ jobs:
     - name: Get GitHub App User ID
       if: steps.semver.outputs.semver != ''
       id: get-user-id
-      run: echo "user-id=$(gh api "/users/${{ steps.generate-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+      run: echo "user-id=$(gh api "/users/flaggle-bot[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ steps.generate-token.outputs.token }}
-        
-    - name: Bump version
-      if: steps.semver.outputs.semver != ''
-      id: bump-version
-      run: |
-        echo "old_version=$(poetry version -s)" >> $GITHUB_OUTPUT
-        echo "Bumping version with semver: ${{ steps.semver.outputs.semver }}"
 
-        pipx install poetry
-        poetry config virtualenvs.in-project true
+    - name: Setup poetry
+      run: |
         poetry self add poetry-bumpversion
         poetry lock --verbose
         poetry install --no-interaction --no-ansi
-        poetry version ${{ steps.semver.outputs.semver }} -vvv
+        
+    - name: Set Pre-release Version
+      if: github.event.action == 'opened' && steps.semver.outputs.semver != ''
+      id: set-prerelease
+      run: |
+        echo "old_version=$(poetry version -s)" >> $GITHUB_OUTPUT
+        echo "Setting pre-release version based on the version component '${{ steps.semver.outputs.semver }}'"
+        
+        poetry version pre${{ steps.semver.outputs.semver }} -vvv
+
+        echo "New version: $(poetry version -s)"
+        echo "new_version=$(poetry version -s)" >> $GITHUB_OUTPUT
+
+    - name: Bump Pre-release Version
+      if: github.event.action == 'synchronize' && steps.semver.outputs.semver != ''
+      id: bump-version
+      run: |
+        echo "old_version=$(poetry version -s)" >> $GITHUB_OUTPUT
+        echo "Bumping pre-release version based on the version component: ${{ steps.semver.outputs.semver }}"
+        
+        poetry version prerelease -vvv
 
         echo "New version: $(poetry version -s)"
         echo "new_version=$(poetry version -s)" >> $GITHUB_OUTPUT
@@ -118,14 +133,37 @@ jobs:
     - name: Set Commiter
       if: steps.semver.outputs.semver != ''
       run: |
-        git config --global user.name '${{ steps.generate-token.outputs.app-slug }}[bot]'
-        git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+        git config --global user.name 'flaggle-bot[bot]'
+        git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+flaggle-bot[bot]@users.noreply.github.com'
     
     - name: Commit and push changes
       if: steps.semver.outputs.semver != ''
       run: |
         git add .
-        git commit -m "[skip ci] 🔖 Bump version ${{ steps.bump-version.outputs.old_version }} -> ${{ steps.bump-version.outputs.new_version }}"
+        git commit -m "[skip ci] 🔖 Bump version ${{ steps.bump-version.outputs.old_version || steps.set-prerelease.outputs.old_version }} -> ${{ steps.bump-version.outputs.new_version || steps.set-prerelease.outputs.new_version }}"
         git push origin HEAD:${{ github.head_ref }} --force
       env:
         GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+  promote-release:
+    runs-on: self-hosted
+    needs: [build,release-candidate]
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    steps:
+    - name: Setup poetry
+      run: |
+        poetry self add poetry-bumpversion
+        poetry lock --verbose
+        poetry install --no-interaction --no-ansi
+       
+    - name: Promote Release
+      run: |
+        echo "Promoting release for version component: ${{ needs.release-candidate.outputs.version_component }}"
+
+        echo "old_version=$(poetry version -s)" >> $GITHUB_OUTPUT
+        echo "Bumping version with semver: ${{ needs.release-candidate.outputs.version_component }}"
+        
+        poetry version pre${{ needs.release-candidate.outputs.version_component }} -vvv
+
+        echo "New version: $(poetry version -s)"
+        echo "new_version=$(poetry version -s)" >> $GITHUB_OUTPUT
