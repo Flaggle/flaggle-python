@@ -1,0 +1,47 @@
+{
+	"name": "poetry3-poetry-pyenv",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	// 👇 Features to add to the Dev Container. More info: https://containers.dev/implementors/features.
+	// "features": {},
+	// 👇 Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// 👇 Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "bash .devcontainer/scripts/setup-dependencies.sh",
+	// 👇 Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"njpwerner.autodocstring",
+				"seatonjiang.gitmoji-vscode",
+				"redhat.vscode-yaml",
+				"GitHub.vscode-github-actions",
+				"GitHub.vscode-pull-request-github",
+				"GitHub.copilot-chat",
+				"GitHub.copilot"
+			]
+		}
+	},
+	"features": {
+		"ghcr.io/devcontainers-community/npm-features/prettier:1": {
+			"version": "latest"
+		},
+		"ghcr.io/schlich/devcontainer-features/powerlevel10k:1": {},
+		"ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {
+			"setLocale": true,
+			"theme": "agnoster",
+			"plugins": "git docker sudo python poetry eza aliases",
+			"desiredLocale": "en_US.UTF-8 UTF-8"
+		},
+		"ghcr.io/devcontainers-extra/features/zsh-plugins:0": {
+			"plugins": "ssh-agent npm",
+			"omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions",
+			"username": "vscode"
+		},
+		"ghcr.io/braun-daniel/devcontainer-features/fzf:1": {}
+	}
+	// 👇 Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}

@@ -1,0 +1,2 @@
+alias zrld="source ~/.zshrc"
+alias zcfg="$EDITOR ~/.zshrc && zrld"
