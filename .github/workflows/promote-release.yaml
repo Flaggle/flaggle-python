@@ -1,0 +1,85 @@
+name: Promote Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [ "main" ]
+
+jobs:
+  promote-release:
+    if: github.event.pull_request.merged == true
+    runs-on: self-hosted
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Create GitHub App Token
+      uses: actions/create-github-app-token@v2
+      id: app-token
+      with:
+        app-id: ${{ vars.FLAGGLE_BOT_ID }}
+        private-key: ${{ secrets.FLAGGLE_BOT_KEY }}
+
+    - name: Download version info
+      uses: actions/download-artifact@v3
+      with:
+          name: version-info
+          
+    - name: Load version info
+      id: version
+      run: |
+          VERSION_INFO=$(cat version-info.json)
+          echo "version_component=$(echo $VERSION_INFO | jq -r .version_component)" >> $GITHUB_OUTPUT
+          echo "gh_app_id=$(echo $VERSION_INFO | jq -r .gh_app_id)" >> $GITHUB_OUTPUT
+
+    - name: Promote Release
+      id: promote-release
+      run: |
+        echo "Promoting release for version component: ${{ steps.version.outputs.version_component }}"
+
+        echo "old_version=$(poetry version -s)" >> $GITHUB_OUTPUT
+        echo "Bumping version with semver: ${{ steps.version.outputs.version_component }}"
+        
+        poetry version pre${{ steps.version.outputs.version_component }} -vvv
+
+        echo "New version: $(poetry version -s)"
+        echo "new_version=$(poetry version -s)" >> $GITHUB_OUTPUT
+
+    - name: Set Commiter
+      run: |
+        git config --global user.name 'flaggle-bot[bot]'
+        git config --global user.email '${{ steps.version.outputs.gh_app_id }}+flaggle-bot[bot]@users.noreply.github.com'
+
+    - name: Commit and push changes
+      run: |
+        git add .
+        git commit -m "[skip ci] 🔖 Bump version ${{ steps.promote-release.outputs.old_version }} -> ${{ steps.promote-release.outputs.new_version }}"
+        git push origin HEAD:${{ github.head_ref }} --force
+      env:
+        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+    - name: Create Pull Request
+      id: cpr
+      uses: peter-evans/create-pull-request@v7
+      with:
+        token: ${{ steps.app-token.outputs.token }}
+        commit-message: "[skip ci] 🔖 Bump version ${{ steps.promote-release.outputs.old_version }} -> ${{ steps.promote-release.outputs.new_version }}"
+        author: ${{ steps.version.outputs.gh_app_id }}+flaggle-bot[bot]@users.noreply.github.com
+        signoff: false
+        branch: release-${{ steps.version.outputs.version_component }}
+        delete-branch: true
+        title: "Release ${{ steps.version.outputs.version_component }}"
+        body: |
+          This pull request promotes the release for version component: ${{ steps.version.outputs.version_component }}"
+        labels: |
+          version-bump
+          automated pr
+        draft: false
+
+    - name: Enable Pull Request Automerge
+      run: gh pr merge --merge --auto "${{ steps.cpr.outputs.pull-request-number }}"
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
