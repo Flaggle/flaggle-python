@@ -13,6 +13,6 @@ from python_flaggle.flaggle import Flaggle
 from python_flaggle.flag import Flag, FlagOperation, FlagType
 
 __all__ = ["FlagType", "FlagOperation", "Flag", "Flaggle"]
-__version__ = "0.4.0a1"
+__version__ = "0.4.0a2"
 __author__ = "Asaph Diniz"
 __email__ = "contato@asaph.dev.br"
