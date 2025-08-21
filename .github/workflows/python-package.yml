@@ -8,16 +8,20 @@ permissions:
 on:
   push:
     branches: [ "main" ]
-    paths-ignore:
-      - '.github/**'
-      - '.devcontainer/**'
-      - '.vscode/**'
+    paths:
+      - '**.py'
+      - '**.md'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - '!README.md'
   pull_request:
     branches: [ "main" ]
-    paths-ignore:
-      - '.github/**'
-      - '.devcontainer/**'
-      - '.vscode/**'
+    paths:
+      - '**.py'
+      - '**.md'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - '!README.md'
 
 jobs:
 
